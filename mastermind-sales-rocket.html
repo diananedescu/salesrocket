@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mastermind Sales Rocket — Diana Nedescu</title>
+
+    <!-- Fonts: Archivo Black (display) + Space Grotesk (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES — BOLD SIGNAL THEME
+           =========================================== */
+        :root {
+            /* Colors */
+            --bg-primary: #141414;
+            --bg-gradient: linear-gradient(145deg, #141414 0%, #1e1e1e 40%, #141414 100%);
+            --card-bg: #FF5722;
+            --card-bg-alt: #FF7043;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255,255,255,0.5);
+            --text-on-card: #141414;
+            --accent: #FF5722;
+            --accent-glow: rgba(255,87,34,0.15);
+            --section-blue: #2979FF;
+            --section-green: #00C853;
+            --section-purple: #AA00FF;
+            --highlight: #FFD600;
+
+            /* Typography */
+            --font-display: 'Archivo Black', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
+            --title-size: clamp(2rem, 5.5vw, 4.5rem);
+            --h2-size: clamp(1.4rem, 3.5vw, 2.8rem);
+            --h3-size: clamp(1.1rem, 2.5vw, 1.8rem);
+            --body-size: clamp(0.8rem, 1.4vw, 1.15rem);
+            --small-size: clamp(0.65rem, 1vw, 0.875rem);
+            --number-size: clamp(3rem, 8vw, 7rem);
+
+            /* Spacing */
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(0.75rem, 2vw, 2rem);
+            --element-gap: clamp(0.3rem, 1vw, 1rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           RESET
+           =========================================== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+        .feature-list, .bullet-list {
+            gap: clamp(0.4rem, 1vh, 1rem);
+        }
+        .feature-list li, .bullet-list li {
+            font-size: var(--body-size);
+            line-height: 1.4;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* Short viewports */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint, .decorative {
+                display: none;
+            }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+        @media (max-width: 600px) {
+            :root {
+                --title-size: clamp(1.25rem, 7vw, 2.5rem);
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
+        /* ===========================================
+           BODY & GLOBAL
+           =========================================== */
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent);
+            z-index: 1000;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* ===========================================
+           NAV DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.75rem, 2vw, 1.5rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(4px, 0.6vh, 8px);
+            z-index: 100;
+        }
+        .nav-dot {
+            width: clamp(6px, 0.5vw, 8px);
+            height: clamp(6px, 0.5vw, 8px);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            transform: scale(1.4);
+        }
+        .nav-dot:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        /* ===========================================
+           SLIDE BACKGROUNDS
+           =========================================== */
+        .slide {
+            background: var(--bg-gradient);
+        }
+        .slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        /* ===========================================
+           SECTION NUMBER — top-left large number
+           =========================================== */
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: var(--number-size);
+            color: rgba(255,255,255,0.04);
+            position: absolute;
+            top: clamp(0.5rem, 2vh, 1.5rem);
+            left: var(--slide-padding);
+            line-height: 1;
+            z-index: 1;
+            user-select: none;
+        }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1 {
+            font-family: var(--font-display);
+            font-size: var(--title-size);
+            line-height: 1.05;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+        h2 {
+            font-family: var(--font-display);
+            font-size: var(--h2-size);
+            line-height: 1.1;
+            text-transform: uppercase;
+            letter-spacing: -0.01em;
+        }
+        h3 {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+        p, li {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            line-height: 1.5;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* ===========================================
+           BOLD SIGNAL — ACCENT CARD
+           =========================================== */
+        .accent-card {
+            background: var(--card-bg);
+            color: var(--text-on-card);
+            padding: clamp(1.25rem, 3vw, 2.5rem);
+            border-radius: clamp(8px, 1vw, 16px);
+            position: relative;
+            overflow: hidden;
+            max-width: min(85vw, 700px);
+        }
+        .accent-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08));
+            pointer-events: none;
+        }
+        .accent-card h2,
+        .accent-card h3 {
+            color: var(--text-on-card);
+        }
+        .accent-card p,
+        .accent-card li {
+            color: rgba(20,20,20,0.8);
+        }
+
+        /* ===========================================
+           BULLET LISTS
+           =========================================== */
+        .bullet-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.4rem, 1vh, 0.9rem);
+            padding: 0;
+        }
+        .bullet-list li {
+            padding-left: clamp(1rem, 2vw, 1.8rem);
+            position: relative;
+        }
+        .bullet-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: clamp(6px, 0.8vh, 10px);
+            width: clamp(6px, 0.5vw, 8px);
+            height: clamp(6px, 0.5vw, 8px);
+            background: var(--accent);
+            border-radius: 2px;
+        }
+        .accent-card .bullet-list li::before {
+            background: var(--text-on-card);
+        }
+
+        /* Dark bullet variant */
+        .bullet-dark li::before {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* ===========================================
+           QUOTE / CALLOUT
+           =========================================== */
+        .callout {
+            border-left: 3px solid var(--accent);
+            padding-left: clamp(0.75rem, 2vw, 1.5rem);
+            font-family: var(--font-body);
+            font-size: clamp(0.9rem, 1.6vw, 1.3rem);
+            font-weight: 500;
+            color: var(--text-primary);
+            font-style: italic;
+        }
+
+        /* ===========================================
+           COMPARISON (DA / NU)
+           =========================================== */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(0.75rem, 2vw, 2rem);
+        }
+        @media (max-width: 600px) {
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .compare-box {
+            padding: clamp(1rem, 2vw, 1.5rem);
+            border-radius: clamp(6px, 0.8vw, 12px);
+        }
+        .compare-box.bad {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .compare-box.good {
+            background: rgba(255,87,34,0.1);
+            border: 1px solid rgba(255,87,34,0.3);
+        }
+        .compare-label {
+            font-family: var(--font-display);
+            font-size: var(--small-size);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: clamp(0.3rem, 0.8vh, 0.6rem);
+        }
+        .compare-box.bad .compare-label { color: rgba(255,255,255,0.4); }
+        .compare-box.good .compare-label { color: var(--accent); }
+
+        /* ===========================================
+           SECTION DIVIDER SLIDES
+           =========================================== */
+        .section-divider {
+            background: var(--card-bg);
+            justify-content: center;
+            align-items: center;
+        }
+        .section-divider::before {
+            background-image:
+                linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+        }
+        .section-divider .slide-content {
+            align-items: center;
+            text-align: center;
+        }
+        .section-divider h2 {
+            color: var(--text-on-card);
+            font-size: clamp(2rem, 5vw, 4rem);
+        }
+        .section-divider .section-label {
+            color: rgba(20,20,20,0.5);
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 600;
+        }
+        .section-divider .section-num {
+            font-family: var(--font-display);
+            font-size: clamp(4rem, 10vw, 8rem);
+            color: rgba(20,20,20,0.12);
+            line-height: 1;
+        }
+
+        /* ===========================================
+           NUMBERED LIST
+           =========================================== */
+        .numbered-list {
+            list-style: none;
+            counter-reset: steps;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.3rem, 0.8vh, 0.7rem);
+            padding: 0;
+        }
+        .numbered-list li {
+            counter-increment: steps;
+            padding-left: clamp(2rem, 3.5vw, 3rem);
+            position: relative;
+        }
+        .numbered-list li::before {
+            content: counter(steps) '.';
+            position: absolute;
+            left: 0;
+            font-family: var(--font-display);
+            font-size: var(--body-size);
+            color: var(--accent);
+        }
+
+        /* ===========================================
+           TAG / BADGE
+           =========================================== */
+        .tag-row {
+            display: flex;
+            gap: clamp(0.3rem, 0.8vw, 0.6rem);
+            flex-wrap: wrap;
+        }
+        .tag {
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            font-weight: 600;
+            padding: clamp(0.2rem, 0.4vh, 0.35rem) clamp(0.5rem, 1vw, 0.9rem);
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tag-accent {
+            background: var(--accent);
+            color: var(--text-on-card);
+        }
+        .tag-ghost {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text-secondary);
+        }
+
+        /* ===========================================
+           HIGHLIGHT TEXT
+           =========================================== */
+        .highlight {
+            color: var(--accent);
+        }
+        .highlight-block {
+            background: var(--accent-glow);
+            border-left: 3px solid var(--accent);
+            padding: clamp(0.6rem, 1.2vh, 1rem) clamp(0.75rem, 1.5vw, 1.25rem);
+            border-radius: 0 8px 8px 0;
+            margin-top: clamp(0.5rem, 1vh, 1rem);
+        }
+        .highlight-block p {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* ===========================================
+           ANIMATIONS — reveal on scroll
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+        .reveal-delay-5 { transition-delay: 0.5s; }
+
+        /* Card entrance */
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.92);
+            transition: opacity 0.7s var(--ease-out-expo),
+                        transform 0.7s var(--ease-out-expo);
+        }
+        .slide.visible .reveal-scale {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Slide from left */
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-40px);
+            transition: opacity 0.6s var(--ease-out-expo),
+                        transform 0.6s var(--ease-out-expo);
+        }
+        .slide.visible .reveal-left {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* ===========================================
+           TITLE SLIDE — special layout
+           =========================================== */
+        .title-slide .slide-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: clamp(1.5rem, 4vw, 4rem);
+        }
+        .title-left {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.75rem, 2vh, 1.5rem);
+        }
+        .title-card {
+            background: var(--card-bg);
+            color: var(--text-on-card);
+            padding: clamp(2rem, 4vw, 4rem);
+            border-radius: clamp(12px, 1.5vw, 24px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: clamp(200px, 40vh, 400px);
+            position: relative;
+            overflow: hidden;
+        }
+        .title-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .title-card h1 {
+            color: var(--text-on-card);
+            font-size: clamp(1.8rem, 4.5vw, 3.5rem);
+        }
+        .title-card .subtitle {
+            color: rgba(20,20,20,0.6);
+            font-size: var(--body-size);
+            font-weight: 500;
+            margin-top: clamp(0.3rem, 0.8vh, 0.75rem);
+        }
+        @media (max-width: 768px) {
+            .title-slide .slide-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .title-left { align-items: center; }
+        }
+
+        /* ===========================================
+           FINAL SLIDE
+           =========================================== */
+        .final-slide {
+            background: var(--bg-primary);
+        }
+        .final-slide .slide-content {
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            gap: clamp(1rem, 3vh, 2.5rem);
+        }
+
+        /* ===========================================
+           UTILITY
+           =========================================== */
+        .gap-sm { gap: clamp(0.3rem, 0.6vh, 0.5rem); }
+        .gap-md { gap: clamp(0.5rem, 1.2vh, 1rem); }
+        .gap-lg { gap: clamp(1rem, 2.5vh, 2rem); }
+        .mt-sm { margin-top: clamp(0.4rem, 0.8vh, 0.75rem); }
+        .mt-md { margin-top: clamp(0.75rem, 1.5vh, 1.25rem); }
+        .flex-col { display: flex; flex-direction: column; }
+    </style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Navigation dots -->
+<nav class="nav-dots" id="navDots" aria-label="Navigare slide-uri"></nav>
+
+<!-- ===========================================
+     SLIDE 1 — TITLU
+     =========================================== -->
+<section class="slide title-slide" data-slide="0">
+    <div class="slide-content">
+        <div class="title-left">
+            <div class="tag-row reveal">
+                <span class="tag tag-accent">Webinar</span>
+                <span class="tag tag-ghost">Vanzari</span>
+                <span class="tag tag-ghost">Sistem</span>
+            </div>
+            <p class="reveal reveal-delay-1" style="color: var(--text-secondary); font-size: var(--small-size); text-transform: uppercase; letter-spacing: 0.1em;">cu Diana Nedescu</p>
+        </div>
+        <div class="title-card reveal-scale reveal-delay-2">
+            <h1>Mastermind<br>Sales Rocket</h1>
+            <p class="subtitle">Webinar care vinde. Sistem care scaleaza.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 2 — AGENDA
+     =========================================== -->
+<section class="slide" data-slide="1">
+    <span class="slide-number">02</span>
+    <div class="slide-content flex-col gap-lg">
+        <h2 class="reveal">Agenda</h2>
+        <ul class="bullet-list reveal reveal-delay-1">
+            <li>Cum creezi un webinar care vinde</li>
+            <li>Ce nu mai functioneaza in 2026</li>
+            <li>Sistemul de vanzari: nu doar closing</li>
+            <li>Cum construiesti o echipa care produce</li>
+            <li>Automatizari simple care iti dubleaza rezultatele</li>
+        </ul>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 3 — REALITATEA 2026
+     =========================================== -->
+<section class="slide" data-slide="2">
+    <span class="slide-number">03</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Realitatea din 2026</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--text-primary);">Problema nu e ca oamenii nu cumpara.<br>Problema e ca nu mai cumpara usor.</p>
+        <ul class="bullet-list reveal reveal-delay-2 mt-sm">
+            <li>Atentia e extrem de scurta</li>
+            <li>Neincrederea e la cote maxime</li>
+            <li>Piata e saturata</li>
+            <li>Toti incearca sa vanda</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-3">
+            <p>Castiga cine construieste claritate + incredere + sistem</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SECTION DIVIDER — WEBINAR
+     =========================================== -->
+<section class="slide section-divider" data-slide="3">
+    <div class="slide-content">
+        <span class="section-num reveal">01</span>
+        <span class="section-label reveal reveal-delay-1">Sectiunea 1</span>
+        <h2 class="reveal reveal-delay-2">Webinar</h2>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 4 — WEBINARUL NU ESTE PREZENTARE
+     =========================================== -->
+<section class="slide" data-slide="4">
+    <span class="slide-number">04</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Webinarul nu este prezentare</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--text-primary);">Nu e despre informatie.<br>E despre transformare si decizie.</p>
+        <div class="compare-grid reveal reveal-delay-2 mt-sm">
+            <div class="compare-box bad">
+                <p class="compare-label">Daca doar inveti</p>
+                <p>Nu vinzi</p>
+            </div>
+            <div class="compare-box good">
+                <p class="compare-label">Daca misti emotional + clarifici</p>
+                <p>Vinzi</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 5 — TOTUL PORNESTE DE AICI
+     =========================================== -->
+<section class="slide" data-slide="5">
+    <span class="slide-number">05</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Totul porneste de aici</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 500; color: var(--text-primary);">Mesajul bate designul. Tema bate slide-urile.</p>
+        <ul class="bullet-list reveal reveal-delay-2">
+            <li>Ce problema rezolvi?</li>
+            <li>Pentru cine?</li>
+            <li>In cat timp?</li>
+            <li>Ce rezultat concret?</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-3">
+            <p>Daca tema e slaba, webinarul moare</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 6 — EXEMPLU STRUCTURA TEMA
+     =========================================== -->
+<section class="slide" data-slide="6">
+    <span class="slide-number">06</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Tema face diferenta</h2>
+        <div class="compare-grid reveal reveal-delay-1 mt-sm">
+            <div class="compare-box bad">
+                <p class="compare-label">Gresit</p>
+                <p style="font-size: var(--h3-size); font-weight: 600;">"Cum sa slabesti"</p>
+            </div>
+            <div class="compare-box good">
+                <p class="compare-label">Corect</p>
+                <p style="font-size: var(--h3-size); font-weight: 600;">"Cum slabesti 5-15 kg in 3 luni fara dieta stricta si fara sala"</p>
+            </div>
+        </div>
+        <div class="highlight-block reveal reveal-delay-2">
+            <p>Claritate = conversie</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 7 — STRUCTURA WEBINARULUI
+     =========================================== -->
+<section class="slide" data-slide="7">
+    <span class="slide-number">07</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Structura webinarului</h2>
+        <ol class="numbered-list reveal reveal-delay-1">
+            <li>Hook (realitate dura)</li>
+            <li>Demontare credinte false</li>
+            <li>Adevarul simplu</li>
+            <li>Solutia ta (sistem)</li>
+            <li>Dovada (testimoniale)</li>
+            <li>Oferta</li>
+            <li>Call to action</li>
+        </ol>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 8 — HOOK PUTERNIC
+     =========================================== -->
+<section class="slide" data-slide="8">
+    <span class="slide-number">08</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Hook-ul puternic</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--text-primary);">Primele 3 minute decid tot.</p>
+        <ul class="bullet-list reveal reveal-delay-2">
+            <li>Spui un adevar incomod</li>
+            <li>Ii faci sa se regaseasca</li>
+            <li>Creezi tensiune</li>
+        </ul>
+        <div class="callout reveal reveal-delay-3 mt-sm">
+            "Daca nu te doare putin, nu te asculta."
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 9 — DOVADA (OBLIGATORIU)
+     =========================================== -->
+<section class="slide" data-slide="9">
+    <span class="slide-number">09</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Dovada este obligatorie</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--text-primary);">Oamenii nu cred ce spui.<br>Cred ce vad.</p>
+        <ul class="bullet-list reveal reveal-delay-2">
+            <li>Testimoniale reale</li>
+            <li>Rezultate masurabile</li>
+            <li>Cazuri concrete</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-3">
+            <p>Fara dovada = fara vanzare</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 10 — PRE-WEBINAR
+     =========================================== -->
+<section class="slide" data-slide="10">
+    <span class="slide-number">10</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Pre-webinar: 80% din vanzare</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 500; color: var(--text-primary);">Webinarul incepe inainte de webinar.</p>
+        <ul class="bullet-list reveal reveal-delay-2">
+            <li>Grup WhatsApp activ</li>
+            <li>Mesaje de incalzire</li>
+            <li>Educatie inainte de eveniment</li>
+            <li>Construieste incredere din timp</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-3">
+            <p>Cine vine "rece" nu cumpara</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 11 — INFRASTRUCTURA WEBINAR
+     =========================================== -->
+<section class="slide" data-slide="11">
+    <span class="slide-number">11</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Infrastructura webinar</h2>
+        <ul class="bullet-list reveal reveal-delay-1">
+            <li>Landing page simplu si clar</li>
+            <li>Formular (Typeform / simplu)</li>
+            <li>Grup WhatsApp</li>
+            <li>Moderator live</li>
+            <li>Link acces usor</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-2">
+            <p>Frictiune mica = prezenta mare</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 12 — GRESELI COMUNE
+     =========================================== -->
+<section class="slide" data-slide="12">
+    <span class="slide-number">12</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Greseli frecvente in webinare</h2>
+        <ul class="bullet-list reveal reveal-delay-1">
+            <li>Prea multa teorie</li>
+            <li>Fara structura</li>
+            <li>Fara emotie</li>
+            <li>Fara CTA clar</li>
+            <li>Fara follow-up</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-2">
+            <p>Un webinar bun fara follow-up = bani pierduti</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SECTION DIVIDER — VANZARI
+     =========================================== -->
+<section class="slide section-divider" data-slide="13">
+    <div class="slide-content">
+        <span class="section-num reveal">02</span>
+        <span class="section-label reveal reveal-delay-1">Sectiunea 2</span>
+        <h2 class="reveal reveal-delay-2">Vanzari</h2>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 13 — VANZAREA NU ESTE TALENT
+     =========================================== -->
+<section class="slide" data-slide="14">
+    <span class="slide-number">13</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Vanzarea nu este talent</h2>
+        <div class="accent-card reveal-scale reveal-delay-1">
+            <h3>Vanzarea este sistem.</h3>
+        </div>
+        <div class="compare-grid reveal reveal-delay-2 mt-sm">
+            <div class="compare-box bad">
+                <p class="compare-label">Daca depinzi de oameni</p>
+                <p>E instabil</p>
+            </div>
+            <div class="compare-box good">
+                <p class="compare-label">Daca ai sistem</p>
+                <p>Creste constant</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 14 — STRUCTURA ECHIPEI
+     =========================================== -->
+<section class="slide" data-slide="15">
+    <span class="slide-number">14</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Structura echipei de vanzari</h2>
+        <ul class="bullet-list reveal reveal-delay-1">
+            <li><strong>Setter</strong> &mdash; deschide conversatii prin mesaje</li>
+            <li><strong>Caller / Closer</strong> &mdash; duce la decizie</li>
+            <li><strong>Team Leader</strong> &mdash; coordoneaza si monitorizeaza</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-2">
+            <p>Fiecare are rol clar. Fara suprapuneri, fara confuzie.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 15 — PROBLEMA IN 2026
+     =========================================== -->
+<section class="slide" data-slide="16">
+    <span class="slide-number">15</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Problema din 2026</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--text-primary);">Oamenii nu mai raspund la vanzare directa.</p>
+        <ul class="bullet-list reveal reveal-delay-2 mt-sm">
+            <li>Au nevoie de conexiune</li>
+            <li>Au nevoie de intelegere</li>
+            <li>Au nevoie de personalizare</li>
+        </ul>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 16 — CE VINDE DE FAPT
+     =========================================== -->
+<section class="slide" data-slide="17">
+    <span class="slide-number">16</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Ce vinde de fapt</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--text-primary);">Nu vinzi produs. Vinzi:</p>
+        <ul class="bullet-list reveal reveal-delay-2" style="font-size: var(--h3-size);">
+            <li>Claritate</li>
+            <li>Siguranta</li>
+            <li>Incredere</li>
+            <li>Rezultat</li>
+        </ul>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 17 — CONVERSATIA CARE VINDE
+     =========================================== -->
+<section class="slide" data-slide="18">
+    <span class="slide-number">17</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Conversatia care vinde</h2>
+        <ul class="bullet-list reveal reveal-delay-1">
+            <li>Asculta mai mult decat vorbesti</li>
+            <li>Identifica problema reala</li>
+            <li>Du clientul la constientizare</li>
+        </ul>
+        <div class="accent-card reveal-scale reveal-delay-2 mt-md">
+            <h3>Intelege. Simte. Decide.</h3>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 18 — GRESEALA MARE
+     =========================================== -->
+<section class="slide" data-slide="19">
+    <span class="slide-number">18</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Greseala cea mai frecventa</h2>
+        <div class="accent-card reveal-scale reveal-delay-1">
+            <h3>Prezinti solutia prea devreme.</h3>
+            <p class="mt-sm">Daca clientul nu simte problema, nu va cumpara.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 19 — FOLLOW-UP = BANI
+     =========================================== -->
+<section class="slide" data-slide="20">
+    <span class="slide-number">19</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Follow-up = bani</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--accent);">80% din vanzari vin din follow-up.</p>
+        <ul class="bullet-list reveal reveal-delay-2">
+            <li>Mesaje personalizate</li>
+            <li>Apeluri de revenire</li>
+            <li>Consistenta in urmarire</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-3">
+            <p>Cine nu face follow-up pierde majoritatea vanzarilor</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 20 — SISTEMUL (PANZA DE PAIANJEN)
+     =========================================== -->
+<section class="slide" data-slide="21">
+    <span class="slide-number">20</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Sistemul: panza de paianjen</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 500; color: var(--text-primary);">Totul trebuie interconectat:</p>
+        <ul class="bullet-list reveal reveal-delay-2">
+            <li>Content</li>
+            <li>Webinar</li>
+            <li>DM</li>
+            <li>Apel</li>
+            <li>Oferta</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-3">
+            <p>Fara sistem = haos</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SECTION DIVIDER — AUTOMATIZARI
+     =========================================== -->
+<section class="slide section-divider" data-slide="22">
+    <div class="slide-content">
+        <span class="section-num reveal">03</span>
+        <span class="section-label reveal reveal-delay-1">Sectiunea 3</span>
+        <h2 class="reveal reveal-delay-2">Automatizari</h2>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 21 — DE CE AI NEVOIE
+     =========================================== -->
+<section class="slide" data-slide="23">
+    <span class="slide-number">21</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">De ce ai nevoie de automatizare</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--text-primary);">Nu mai poti scala manual.</p>
+        <div class="accent-card reveal-scale reveal-delay-2 mt-sm">
+            <h3>Automatizare = timp + bani</h3>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 22 — AUTOMATIZARI DE BAZA
+     =========================================== -->
+<section class="slide" data-slide="24">
+    <span class="slide-number">22</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Automatizari de baza</h2>
+        <ul class="bullet-list reveal reveal-delay-1">
+            <li>Colectare lead-uri automata</li>
+            <li>Mesaje automate de confirmare</li>
+            <li>Programari apel fara efort manual</li>
+            <li>Follow-up automat</li>
+        </ul>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 23 — TOOL-URI SIMPLE
+     =========================================== -->
+<section class="slide" data-slide="25">
+    <span class="slide-number">23</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Tool-uri simple, rezultate reale</h2>
+        <ul class="bullet-list reveal reveal-delay-1">
+            <li>Typeform</li>
+            <li>WhatsApp</li>
+            <li>CRM (Excel sau simplu)</li>
+            <li>Link programari</li>
+        </ul>
+        <div class="highlight-block reveal reveal-delay-2">
+            <p>Nu ai nevoie de complicat</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 24 — REGULA DE AUR
+     =========================================== -->
+<section class="slide" data-slide="26">
+    <span class="slide-number">24</span>
+    <div class="slide-content flex-col gap-md">
+        <h2 class="reveal">Regula de aur</h2>
+        <div class="accent-card reveal-scale reveal-delay-1">
+            <h3>Simplu bate perfect.</h3>
+            <p class="mt-sm">Mai bine functioneaza simplu decat perfect si nefolosit.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     SLIDE 25 — FINAL
+     =========================================== -->
+<section class="slide final-slide" data-slide="27">
+    <div class="slide-content">
+        <h2 class="reveal" style="font-size: var(--title-size);">Lucrurile se schimba<br>cand iei o decizie.</h2>
+        <p class="reveal reveal-delay-1" style="font-size: var(--h3-size); font-weight: 600; color: var(--accent);">Sistemul bate motivatia.<br>Claritatea bate haosul.</p>
+        <div class="tag-row reveal reveal-delay-2 mt-md" style="justify-content: center;">
+            <span class="tag tag-accent">Mastermind Sales Rocket</span>
+            <span class="tag tag-ghost">Diana Nedescu</span>
+        </div>
+    </div>
+</section>
+
+<!-- ===========================================
+     JAVASCRIPT: Slide Controller
+     =========================================== -->
+<script>
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.isScrolling = false;
+
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+    }
+
+    /* --- Intersection Observer: triggers .visible class --- */
+    setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    const idx = Array.from(this.slides).indexOf(entry.target);
+                    if (idx !== -1) {
+                        this.currentSlide = idx;
+                        this.updateProgressBar();
+                        this.updateNavDots();
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+
+        this.slides.forEach(slide => observer.observe(slide));
+    }
+
+    /* --- Keyboard: arrows, space, page up/down --- */
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            if (e.target.getAttribute('contenteditable')) return;
+            switch (e.key) {
+                case 'ArrowDown':
+                case 'ArrowRight':
+                case ' ':
+                case 'PageDown':
+                    e.preventDefault();
+                    this.goToSlide(this.currentSlide + 1);
+                    break;
+                case 'ArrowUp':
+                case 'ArrowLeft':
+                case 'PageUp':
+                    e.preventDefault();
+                    this.goToSlide(this.currentSlide - 1);
+                    break;
+                case 'Home':
+                    e.preventDefault();
+                    this.goToSlide(0);
+                    break;
+                case 'End':
+                    e.preventDefault();
+                    this.goToSlide(this.slides.length - 1);
+                    break;
+            }
+        });
+    }
+
+    /* --- Touch / swipe support --- */
+    setupTouchNav() {
+        let startY = 0;
+        document.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+        document.addEventListener('touchend', (e) => {
+            const diff = startY - e.changedTouches[0].clientY;
+            if (Math.abs(diff) > 50) {
+                this.goToSlide(this.currentSlide + (diff > 0 ? 1 : -1));
+            }
+        }, { passive: true });
+    }
+
+    /* --- Progress bar --- */
+    setupProgressBar() {
+        this.progressBar = document.getElementById('progressBar');
+        this.updateProgressBar();
+    }
+
+    updateProgressBar() {
+        if (!this.progressBar) return;
+        const pct = ((this.currentSlide + 1) / this.slides.length) * 100;
+        this.progressBar.style.width = pct + '%';
+    }
+
+    /* --- Navigation dots --- */
+    setupNavDots() {
+        this.navDotsContainer = document.getElementById('navDots');
+        if (!this.navDotsContainer) return;
+        this.navDotsContainer.innerHTML = '';
+        this.slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('aria-label', `Slide ${i + 1}`);
+            dot.addEventListener('click', () => this.goToSlide(i));
+            this.navDotsContainer.appendChild(dot);
+        });
+    }
+
+    updateNavDots() {
+        if (!this.navDotsContainer) return;
+        this.navDotsContainer.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === this.currentSlide);
+        });
+    }
+
+    /* --- Navigate to slide --- */
+    goToSlide(index) {
+        if (index < 0 || index >= this.slides.length) return;
+        this.slides[index].scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+/* Initialize */
+document.addEventListener('DOMContentLoaded', () => {
+    new SlidePresentation();
+});
+</script>
+
+</body>
+</html>
